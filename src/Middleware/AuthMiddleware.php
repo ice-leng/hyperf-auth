@@ -4,16 +4,15 @@ declare(strict_types=1);
 namespace Lengbin\Hyperf\Auth\Middleware;
 
 use FastRoute\Dispatcher;
-use http\Exception\InvalidArgumentException;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\AnnotationCollector;
 use Hyperf\HttpServer\Router\Dispatched;
+use Hyperf\Server\Exception\InvalidArgumentException;
 use Hyperf\Utils\Context;
 use Lengbin\Hyperf\Auth\AuthAnnotation;
-use Lengbin\Hyperf\Auth\IdentityRepositoryInterface;
+use Lengbin\Hyperf\Auth\Exception\InvalidTokenException;
 use Lengbin\Hyperf\Auth\Method\CompositeAuth;
 use Lengbin\Hyperf\Auth\AuthInterface;
-use Lengbin\Hyperf\Auth\Exception\AuthException;
 use Lengbin\Hyperf\Auth\User\GuestIdentity;
 use Lengbin\Hyperf\Auth\User\User;
 use Lengbin\Hyperf\Helper\Arrays\ArrayHelper;
@@ -63,10 +62,6 @@ class AuthMiddleware implements MiddlewareInterface
             throw new InvalidArgumentException('Please set auth config');
         }
 
-        if (empty($auth['identityClass'])) {
-            throw new InvalidArgumentException('Please set auth config identityClass params');
-        }
-
         if (empty($auth['method'])) {
             throw new InvalidArgumentException('Please set auth config method params');
         } else {
@@ -89,7 +84,7 @@ class AuthMiddleware implements MiddlewareInterface
      * @param RequestHandlerInterface $handler
      *
      * @return ResponseInterface
-     * @throws AuthException
+     * @throws InvalidTokenException
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -100,22 +95,6 @@ class AuthMiddleware implements MiddlewareInterface
 
         $auth = $this->checkConfig();
 
-        $identityClass = make($auth['identityClass']);
-
-        if (!$identityClass instanceof \Lengbin\Hyperf\Auth\IdentityRepositoryInterface) {
-            throw new \RuntimeException($auth['identityClass'] . ' must implement ' . IdentityRepositoryInterface::class);
-        }
-
-        if (is_array($auth['method'])) {
-            $authenticator = make(CompositeAuth::class, [$this->container]);
-            $authenticator->setAuthMethods($auth['method']);
-        } else {
-            $authenticator = make($auth['method'], [$identityClass]);
-            if (!$authenticator instanceof AuthInterface) {
-                throw new \RuntimeException(get_class($authenticator) . ' must implement ' . AuthInterface::class);
-            }
-        }
-
         [$isPublic, $isWhitelist] = $this->checkRouter($dispatched);
 
         //不验证
@@ -124,27 +103,35 @@ class AuthMiddleware implements MiddlewareInterface
             $isPublic = $this->checkPath($request, $publicList);
         }
 
+        if ($isPublic) {
+            return $handler->handle($request);
+        }
+
         //白名单
         if ($isWhitelist === null) {
             $whitelist = ArrayHelper::getValue($auth, 'whitelist', []);
             $isWhitelist = $this->checkPath($request, $whitelist);
         }
 
-        $identity = $isPublic ? null : $authenticator->authenticate($request);
-
-        $request = Context::override(ServerRequestInterface::class, function (ServerRequestInterface $request) use ($identityClass, $identity) {
-            $eventDispatcher = $this->container->get(EventDispatcherInterface::class);
-
-            $user = make(User::class, [$identityClass, $eventDispatcher]);
-            if ($identity === null) {
-                $identity = make(GuestIdentity::class);
+        if (is_array($auth['method'])) {
+            $authenticator = make(CompositeAuth::class, [$this->container]);
+            $authenticator->setAuthMethods($auth['method']);
+        } else {
+            $authenticator = make($auth['method']);
+            if (!$authenticator instanceof AuthInterface) {
+                throw new \RuntimeException(get_class($authenticator) . ' must implement ' . AuthInterface::class);
             }
+        }
+
+        $identity = $authenticator->authenticate($request) ?? new GuestIdentity();
+        $request = Context::override(ServerRequestInterface::class, function (ServerRequestInterface $request) use ($identity) {
+            $user = make(User::class);
             $user->login($identity);
             return $request->withAttribute($this->requestName, $user);
         });
 
-        if (!$isPublic && $identity === null && !$isWhitelist) {
-            throw new AuthException();
+        if (!$isWhitelist && !$identity->getId()) {
+            throw new InvalidTokenException();
         }
 
         return $handler->handle($request);

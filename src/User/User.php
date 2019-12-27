@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lengbin\Hyperf\Auth\User;
 
+use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Lengbin\Hyperf\Auth\IdentityInterface;
 use Lengbin\Hyperf\Auth\IdentityRepositoryInterface;
@@ -12,21 +13,21 @@ use Lengbin\Hyperf\Auth\User\Event\AfterLogoutEvent;
 use Lengbin\Hyperf\Auth\User\Event\BeforeLoginEvent;
 use Lengbin\Hyperf\Auth\User\Event\BeforeLogout;
 
-class User
+class User implements UserInterface
 {
     private const SESSION_AUTH_ID = '__auth_id';
     private const SESSION_AUTH_EXPIRE = '__auth_expire';
     private const SESSION_AUTH_ABSOLUTE_EXPIRE = '__auth_absolute_expire';
 
     /**
+     * @var ContainerInterface
+     */
+    private $container;
+
+    /**
      * @var IdentityRepositoryInterface
      */
     private $identityRepository;
-
-    /**
-     * @var $accessChecker
-     */
-    private $accessChecker;
 
     /**
      * @var IdentityInterface
@@ -43,15 +44,11 @@ class User
      */
     private $eventDispatcher;
 
-    public function __construct(IdentityRepositoryInterface $identityRepository, EventDispatcherInterface $eventDispatcher)
+    public function __construct(ContainerInterface $container, IdentityRepositoryInterface $identityRepository, EventDispatcherInterface $eventDispatcher)
     {
+        $this->container = $container;
         $this->identityRepository = $identityRepository;
         $this->eventDispatcher = $eventDispatcher;
-    }
-
-    public function setAccessChecker($accessChecker = null): void
-    {
-        $this->accessChecker = $accessChecker;
     }
 
     /**
@@ -61,9 +58,12 @@ class User
      *
      * @param $session
      */
-    public function setSession($session): void
+    public function getSession()
     {
-        $this->session = $session;
+        if ($this->session === null && $this->container->has('session')) {
+            $this->session = $this->container->get('session');
+        }
+        return $this->session;
     }
 
     /**
@@ -94,7 +94,7 @@ class User
     public function getIdentity($autoRenew = true): IdentityInterface
     {
         if ($this->identity === null) {
-            if ($this->session !== null && $autoRenew) {
+            if ($this->getSession() !== null && $autoRenew) {
                 try {
                     $this->identity = null;
                     $this->renewAuthStatus();
@@ -185,8 +185,8 @@ class User
         $identity = $this->getIdentity();
         if (!$this->isGuest() && $this->beforeLogout($identity)) {
             $this->switchIdentity(new GuestIdentity());
-            if ($destroySession && $this->session) {
-                $this->session->destroy();
+            if ($destroySession && $this->getSession()) {
+                $this->getSession()->destroy();
             }
             $this->afterLogout($identity);
         }
@@ -287,22 +287,22 @@ class User
     public function switchIdentity(IdentityInterface $identity): void
     {
         $this->setIdentity($identity);
-        if ($this->session === null) {
+        if ($this->getSession() === null) {
             return;
         }
 
-        $this->session->regenerateID();
+        $this->getSession()->regenerateID();
 
-        $this->session->remove(self::SESSION_AUTH_ID);
-        $this->session->remove(self::SESSION_AUTH_EXPIRE);
+        $this->getSession()->remove(self::SESSION_AUTH_ID);
+        $this->getSession()->remove(self::SESSION_AUTH_EXPIRE);
 
         if ($identity->getId() !== null) {
-            $this->session->set(self::SESSION_AUTH_ID, $identity->getId());
+            $this->getSession()->set(self::SESSION_AUTH_ID, $identity->getId());
             if ($this->authTimeout !== null) {
-                $this->session->set(self::SESSION_AUTH_EXPIRE, time() + $this->authTimeout);
+                $this->getSession()->set(self::SESSION_AUTH_EXPIRE, time() + $this->authTimeout);
             }
             if ($this->absoluteAuthTimeout !== null) {
-                $this->session->set(self::SESSION_AUTH_ABSOLUTE_EXPIRE, time() + $this->absoluteAuthTimeout);
+                $this->getSession()->set(self::SESSION_AUTH_ABSOLUTE_EXPIRE, time() + $this->absoluteAuthTimeout);
             }
         }
     }
@@ -320,7 +320,7 @@ class User
      */
     protected function renewAuthStatus(): void
     {
-        $id = $this->session->get(self::SESSION_AUTH_ID);
+        $id = $this->getSession()->get(self::SESSION_AUTH_ID);
 
         $identity = null;
         if ($id !== null) {
@@ -332,12 +332,12 @@ class User
         $this->setIdentity($identity);
 
         if (!($identity instanceof GuestIdentity) && ($this->authTimeout !== null || $this->absoluteAuthTimeout !== null)) {
-            $expire = $this->authTimeout !== null ? $this->session->get(self::SESSION_AUTH_ABSOLUTE_EXPIRE) : null;
-            $expireAbsolute = $this->absoluteAuthTimeout !== null ? $this->session->get(self::SESSION_AUTH_ABSOLUTE_EXPIRE) : null;
+            $expire = $this->authTimeout !== null ? $this->getSession()->get(self::SESSION_AUTH_ABSOLUTE_EXPIRE) : null;
+            $expireAbsolute = $this->absoluteAuthTimeout !== null ? $this->getSession()->get(self::SESSION_AUTH_ABSOLUTE_EXPIRE) : null;
             if (($expire !== null && $expire < time()) || ($expireAbsolute !== null && $expireAbsolute < time())) {
                 $this->logout(false);
             } elseif ($this->authTimeout !== null) {
-                $this->session->set(self::SESSION_AUTH_EXPIRE, time() + $this->authTimeout);
+                $this->getSession()->set(self::SESSION_AUTH_EXPIRE, time() + $this->authTimeout);
             }
         }
     }
@@ -357,7 +357,7 @@ class User
     public function can(string $permissionName, array $params = []): bool
     {
         if ($this->accessChecker === null) {
-            return false;
+            $this->accessChecker = $this->container->get(AccessCheckerInterface::class);
         }
 
         return $this->accessChecker->hasPermission($this->getId(), $permissionName, $params);

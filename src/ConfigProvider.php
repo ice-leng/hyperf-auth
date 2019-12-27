@@ -22,10 +22,9 @@ class ConfigProvider
     {
         return [
             'dependencies' => [
-                IdentityRepositoryInterface::class => Identity::class,
-                HttpHeaderAuth::class              => HttpHeaderAuth::class,
-                QueryParamAuth::class              => QueryParamAuth::class,
-                SignAuth::class                    => SignAuth::class,
+                HttpHeaderAuth::class => HttpHeaderAuth::class,
+                QueryParamAuth::class => QueryParamAuth::class,
+                SignAuth::class       => SignAuth::class,
             ],
             'publish'      => [
                 [
