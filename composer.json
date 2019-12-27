@@ -1,0 +1,30 @@
+{
+  "name": "lengbin/hyperf-auth",
+  "description": "hyperf auth",
+  "type": "library",
+  "keywords": ["php", "hyperf","extension","auth", "hyperf-auth"],
+  "license": "MIT",
+  "require": {
+    "php": ">=7.2.0",
+    "psr/http-message": "^1.0",
+    "psr/event-dispatcher": "^1.0",
+    "lengbin/hyperf-helper": "dev-master"
+  },
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "Lengbin\\Hyperf\\Auth\\": "src"
+    }
+  },
+  "authors": [
+    {
+      "name": "lengbin",
+      "email": "xykxyk2008@163.com"
+    }
+  ],
+  "extra": {
+    "hyperf": {
+      "config": "Lengbin\\Hyperf\\Auth\\ConfigProvider"
+    }
+  }
+}
