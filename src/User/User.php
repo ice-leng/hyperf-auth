@@ -356,10 +356,9 @@ class User implements UserInterface
      */
     public function can(string $permissionName, array $params = []): bool
     {
-        if ($this->accessChecker === null) {
-            $this->accessChecker = $this->container->get(AccessCheckerInterface::class);
+        if (!$this->container->has(AccessCheckerInterface::class)) {
+            return false;
         }
-
-        return $this->accessChecker->hasPermission($this->getId(), $permissionName, $params);
+        return $this->container->get(AccessCheckerInterface::class)->hasPermission($this->getId(), $permissionName, $params);
     }
 }
