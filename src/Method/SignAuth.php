@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lengbin\Hyperf\Auth\Method;
 
 use Hyperf\Config\Annotation\Value;
-use Lengbin\Hyperf\Helper\Arrays\ArrayHelper;
+use Lengbin\Helper\YiiSoft\Arrays\ArrayHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Lengbin\Hyperf\Auth\AuthInterface;
