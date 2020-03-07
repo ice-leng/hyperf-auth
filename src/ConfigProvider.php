@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Lengbin\Hyperf\Auth;
 
-use Lengbin\Hyperf\Auth\Method\HttpHeaderAuth;
-use Lengbin\Hyperf\Auth\Method\QueryParamAuth;
-use Lengbin\Hyperf\Auth\Method\SignAuth;
+use Lengbin\Auth\Method\HttpHeaderAuth;
+use Lengbin\Auth\Method\QueryParamAuth;
+use Lengbin\Auth\Method\SignAuth;
 
 class ConfigProvider
 {
@@ -22,9 +22,9 @@ class ConfigProvider
     {
         return [
             'dependencies' => [
-                HttpHeaderAuth::class => HttpHeaderAuth::class,
-                QueryParamAuth::class => QueryParamAuth::class,
-                SignAuth::class       => SignAuth::class,
+                \Lengbin\Auth\Method\HttpHeaderAuth::class => \Lengbin\Auth\Method\HttpHeaderAuth::class,
+                \Lengbin\Auth\Method\QueryParamAuth::class => \Lengbin\Auth\Method\QueryParamAuth::class,
+                \Lengbin\Auth\Method\SignAuth::class       => \Lengbin\Auth\Method\SignAuth::class,
             ],
             'publish'      => [
                 [

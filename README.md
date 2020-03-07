@@ -26,40 +26,40 @@ or add
 ```
 to the require section of your `composer.json` file.
 
+如果没有看懂可以参考[hyper-advanced](https://github.com/ice-leng/hyperf-advanced)
+
 Configs
 -----
 ``` php
     // 配置 /config/autoload/auth.php
     return [
-        // 全局变量 名称
-        'requestName'   => 'auth',
-        // 验证器方法，支持
-        // header: \Lengbin\Hyperf\Auth\Method\HttpHeaderAuth::class
-        // query : \Lengbin\Hyperf\Auth\Method\QueryParamAuth::class
-        // sign  : \Lengbin\Hyperf\Auth\Method\SignAuth::class
-        // 如果为 数组 则为 混合验证
-        'method'        => [
-            \Lengbin\Hyperf\Auth\Method\HttpHeaderAuth::class,
-            \Lengbin\Hyperf\Auth\Method\QueryParamAuth::class,
-        ],
-        //路由白名单 此参数。 不适合带path参数路由，比如有 /test/{id}, 如果想匹配请使用注解 AuthAnnotation
-        'whitelist'     => [],
-        //公共访问，不走验证。此参数 不适合带path参数路由，比如有 /test/{id}, 如果想匹配请使用注解 AuthAnnotation
-        'public'        => [],
+        'api'  => [
+                // 全局变量 名称
+                'requestName'   => 'api',
+                // 实现类，请实现接口 \Lengbin\Auth\IdentityRepositoryInterface::class
+                'identityClass' => \App\Model\User::class,
+                // 验证器方法，支持
+                // header: \Lengbin\Auth\Method\HttpHeaderAuth::class
+                // query : \Lengbin\Auth\Method\QueryParamAuth::class
+                // sign  : \Lengbin\Auth\Method\SignAuth::class
+                // 如果为 数组 则为 混合验证
+                'method' => [
+                    \Lengbin\Auth\Method\HttpHeaderAuth::class,
+                    \Lengbin\Auth\Method\QueryParamAuth::class,
+                ],
+                //路由白名单。列如 /test/{id}, 可以使用*来通配, /test/*
+                'whitelist'     => [],
+                //公共访问，不走验证。列如 /test/{id}, 可以使用*来通配, /test/*
+                'public'        => [],
+            ],
     ];
-        
-    // 依赖注入 /config/autoload/dependencies.php
-    return [
-        // User implements IdentityRepositoryInterface, IdentityInterface
-        IdentityRepositoryInterface::class => \App\Model\User::class,
-    ];
-    
+            
     //重新定义 无效token 异常 请捕获 Lengbin\Hyperf\Auth\Exception\InvalidTokenException
     //  /config/autoload/exceptions.php
     return [
         'handler' => [
             'http' => [
-                \Common\Exception\Handler\InvalidTokenExceptionHandler::class,
+                \Lengbin\Hyperf\Helper\Exception\Handler\InvalidTokenExceptionHandler::class,
             ],
         ],
     ];
@@ -68,8 +68,8 @@ Configs
     // /config/autoload/middlewares.php
     return [
         'http' => [
-            \Lengbin\Hyperf\Auth\Middleware\CorsMiddleware::class,
-            \Lengbin\Hyperf\Auth\Middleware\AuthMiddleware::class,
+             \Lengbin\Hyperf\Auth\Middleware\CorsMiddleware::class,
+             \Lengbin\Hyperf\Auth\Middleware\ApiMiddleware::class,
         ],
     ];
     
@@ -158,7 +158,7 @@ class IndexController extends AbstractController
     public function getAuth(): UserInterface
     {
         $config = $this->container->get(ConfigInterface::class);
-        $requestName = $config->get('auth.requestName', 'auth');
+        $requestName = $config->get('auth.api.requestName', 'api');
         return $this->request->getAttribute($requestName);
     }
 
@@ -176,4 +176,4 @@ class IndexController extends AbstractController
 }
 ```
 
-案例中的token请看[详情](https://github.com/ice-leng/hyperf-jwt)
+案例中的jwt请看[详情](https://github.com/ice-leng/hyperf-jwt)
