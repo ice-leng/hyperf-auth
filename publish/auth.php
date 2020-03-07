@@ -44,7 +44,7 @@ return [
         // key => val  接收参数名称 => 验证类
         'method' => [
             \Lengbin\Auth\Method\HttpHeaderAuth::class,
-            'token' => \Lengbin\Auth\Method\QueryParamAuth::class,
+            \Lengbin\Auth\Method\QueryParamAuth::class,
         ],
         //路由白名单。列如 /test/{id}, 可以使用*来通配, /test/*
         'whitelist'     => [],
