@@ -53,15 +53,15 @@ return [
     ],
     'web'  => [
         // 全局变量 名称
-        'requestName' => 'auth',
+        'requestName' => 'web',
         'identityClass' => \App\Model\User::class,
-        'method' => [
-            \Lengbin\Auth\Method\HttpHeaderAuth::class,
-            \Lengbin\Auth\Method\QueryParamAuth::class,
-        ],
-        'whitelist' => [],
+        // 过期时间
+        'timeout' => 8 * 60 * 60,
+        // 跳转页面
+        'redirect' => '/',
         'public'    => [],
     ],
+    // todo 未实现，目前没有场景做，先放着
     'sign' => [
         'requestName' => 'auth',
         'identityClass' => \App\Model\User::class,

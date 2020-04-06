@@ -12,10 +12,6 @@ declare(strict_types=1);
 
 namespace Lengbin\Hyperf\Auth;
 
-use Lengbin\Auth\Method\HttpHeaderAuth;
-use Lengbin\Auth\Method\QueryParamAuth;
-use Lengbin\Auth\Method\SignAuth;
-
 class ConfigProvider
 {
     public function __invoke(): array
@@ -25,6 +21,7 @@ class ConfigProvider
                 \Lengbin\Auth\Method\HttpHeaderAuth::class => \Lengbin\Auth\Method\HttpHeaderAuth::class,
                 \Lengbin\Auth\Method\QueryParamAuth::class => \Lengbin\Auth\Method\QueryParamAuth::class,
                 \Lengbin\Auth\Method\SignAuth::class       => \Lengbin\Auth\Method\SignAuth::class,
+                \Lengbin\Auth\AuthSessionInterface::class  => \Lengbin\Hyperf\Auth\AuthSession::class,
             ],
             'publish'      => [
                 [
