@@ -55,6 +55,17 @@ Configs
                 //公共访问，不走验证。列如 /test/{id}, 可以使用*来通配, /test/*
                 'public'        => [],
             ],
+         'web'  => [
+                // 基于session
+                // 全局变量 名称
+                'requestName' => 'web',
+                'identityClass' => \App\Model\User::class,
+                // 过期时间
+                'timeout' => 8 * 60 * 60,
+                // 跳转页面
+                'redirect' => '/',
+                'public'    => [],
+            ],
     ];
             
     //重新定义 无效token 异常 请捕获 Lengbin\Hyperf\Auth\Exception\InvalidTokenException
@@ -69,10 +80,20 @@ Configs
 
     // 中间件
     // /config/autoload/middlewares.php
+
+    // api
     return [
         'http' => [
              \Lengbin\Hyperf\Auth\Middleware\CorsMiddleware::class,
              \Lengbin\Hyperf\Auth\Middleware\ApiMiddleware::class,
+        ],
+    ];
+    
+   // web 基于session
+    return [
+        'backend' => [
+            \Hyperf\Session\Middleware\SessionMiddleware::class,
+            \Lengbin\Hyperf\Auth\Middleware\WebMiddleware::class,
         ],
     ];
     
@@ -175,8 +196,19 @@ class IndexController extends AbstractController
             'id' => $this->getAuth()->getId()
         ];
     }
+    
+    // 基于session， 存 uid
+    public function login ()
+    {
+        $user = new User();
+        $this->getAuth()->login($user);
+        
+        var_dump($this->getAuth()->getId());
+    }
 
 }
+
+
 ```
 
 案例中的jwt请看[详情](https://github.com/ice-leng/hyperf-jwt)
