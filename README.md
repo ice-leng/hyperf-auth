@@ -68,16 +68,7 @@ Configs
             ],
     ];
             
-    //重新定义 无效token 异常 请捕获 Lengbin\Hyperf\Auth\Exception\InvalidTokenException
-    //  /config/autoload/exceptions.php
-    return [
-        'handler' => [
-            'http' => [
-                \Lengbin\Hyperf\Helper\Exception\Handler\InvalidTokenExceptionHandler::class,
-            ],
-        ],
-    ];
-
+    
     // 中间件
     // /config/autoload/middlewares.php
 
