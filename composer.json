@@ -8,7 +8,8 @@
     "php": ">=7.2.0",
     "psr/http-message": "^1.0",
     "psr/event-dispatcher": "^1.0",
-    "lengbin/auth": "dev-master"
+    "lengbin/auth": "dev-master",
+    "lengbin/hyperf-common": "dev-master"
   },
   "minimum-stability": "stable",
   "autoload": {
