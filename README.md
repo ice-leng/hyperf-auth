@@ -123,7 +123,7 @@ use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Lengbin\Hyperf\Auth\AuthAnnotation;
 use Lengbin\Hyperf\Auth\User\UserInterface;
-use Lengbin\Jwt\TokenInterface;
+use Lengbin\Jwt\JwtInterface;
 
 /**
  * Class IndexController
@@ -135,7 +135,7 @@ class IndexController extends AbstractController
 
     /**
      * @Inject()
-     * @var TokenInterface
+     * @var JwtInterface
      */
     protected $jwt;
 
@@ -152,7 +152,7 @@ class IndexController extends AbstractController
         return [
             'method'  => $method,
             'message' => "Hello {$user}.",
-            'token' => $this->jwt->makeToken(["username"=> 'ice', 'face'=> ''], 12),
+            'token' => $this->jwt->generate(["username"=> 'ice', 'face'=> '']),
         ];
     }
 
