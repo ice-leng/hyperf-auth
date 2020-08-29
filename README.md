@@ -75,7 +75,7 @@ Configs
     // api
     return [
         'http' => [
-             \Lengbin\Hyperf\Auth\Middleware\CorsMiddleware::class,
+             \Lengbin\Hyperf\Common\Middleware\CorsMiddleware::class,
              \Lengbin\Hyperf\Auth\Middleware\ApiMiddleware::class,
         ],
     ];
