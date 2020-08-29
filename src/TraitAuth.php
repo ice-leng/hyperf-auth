@@ -4,7 +4,7 @@ namespace Lengbin\Hyperf\Auth;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\HttpServer\Router\Dispatched;
-use Lengbin\Hyperf\Helper\AnnotationHelper;
+use Lengbin\Hyperf\Common\Helper\AnnotationHelper;
 use Psr\Http\Message\ServerRequestInterface;
 
 trait TraitAuth
