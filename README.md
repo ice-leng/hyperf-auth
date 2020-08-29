@@ -121,8 +121,8 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\RequestMapping;
-use Lengbin\Hyperf\Auth\AuthAnnotation;
-use Lengbin\Hyperf\Auth\User\UserInterface;
+use Lengbin\Hyperf\Auth\RouterAuthAnnotation;
+use Lengbin\Auth\User\UserInterface;
 use Lengbin\Jwt\JwtInterface;
 
 /**
@@ -142,7 +142,7 @@ class IndexController extends AbstractController
     /**
      * 直接访问 不做验证 
      * @RequestMapping(path="/", methods={"get", "post"})
-     * @AuthAnnotation(isPublic=true)  
+     * @RouterAuthAnnotation(isPublic=true)  
      * @return array
      */
     public function index()
@@ -159,7 +159,7 @@ class IndexController extends AbstractController
     /**
      * 路由白名单， 直接方法 或者 带token 访问
      * @GetMapping(path="/test/{id:\d{1,3}}")
-     * @AuthAnnotation(isWhitelist=true)
+     * @RouterAuthAnnotation(isWhitelist=true)
      */
     public function test($id)
     {

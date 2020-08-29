@@ -29,10 +29,14 @@ trait TraitAuth
      */
     public function checkRouter(ServerRequestInterface $request, Dispatched $dispatched): array
     {
+        // 优先级 ， 方法 大于 类
         /**
-         * @var AuthAnnotation $authAnnotation
+         * @var RouterAuthAnnotation $authAnnotation
          */
-        $authAnnotation = AnnotationHelper::get(AuthAnnotation::class, $dispatched);
+        $authAnnotation = AnnotationHelper::getClassMethodAnnotation(RouterAuthAnnotation::class, $dispatched);
+        if (is_null($authAnnotation)) {
+            $authAnnotation = AnnotationHelper::getClassAnnotation(RouterAuthAnnotation::class, $dispatched);
+        }
         if ($authAnnotation !== null) {
             $isPublic = $authAnnotation->isPublic;
             $isWhitelist = $authAnnotation->isWhitelist;
