@@ -8,7 +8,7 @@ use Hyperf\Di\Annotation\AbstractAnnotation;
 
 /**
  * @Annotation
- * @Target({"METHOD"})
+ * @Target({"CLASS", "METHOD"})
  */
 class AuthAnnotation extends AbstractAnnotation
 {
@@ -17,7 +17,4 @@ class AuthAnnotation extends AbstractAnnotation
 
     // 是否为白名单， 走auth验证，如果不存在token不报错
     public $isWhitelist = false;
-
-    // 是否 格式化 json  统一输出
-    public $isJsonFormat = true;
 }
