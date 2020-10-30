@@ -20,6 +20,7 @@ class AuthTokenExceptionHandler extends ExceptionHandler
         $this->stopPropagation();
         $this->formatLog($throwable);
         $error = $throwable instanceof ExpiredJwtException ? CommentErrorCode::TOKEN_EXPIRED() : CommentErrorCode::INVALID_TOKEN();
+
         return $this->response->fail($error->getValue(), $error->getMessage());
     }
 
