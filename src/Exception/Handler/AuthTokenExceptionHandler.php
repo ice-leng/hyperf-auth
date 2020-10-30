@@ -11,7 +11,7 @@ use Lengbin\Jwt\Exception\InvalidJwtException;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
-class TokenExceptionHandler extends ExceptionHandler
+class AuthTokenExceptionHandler extends ExceptionHandler
 {
     use ExceptionHandlerTrait;
 
