@@ -1,6 +1,6 @@
 <?php
 
-namespace Lengbin\Hyperf\Exception\Handler;
+namespace Lengbin\Hyperf\Auth\Exception\Handler;
 
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Lengbin\Auth\Exception\InvalidTokenException;
