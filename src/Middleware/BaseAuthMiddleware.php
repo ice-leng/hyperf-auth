@@ -167,6 +167,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         }
 
         $request = $this->handlePayload($request, $payload);
+        $request = $request->withAttribute('token', $token);
         Context::set(ServerRequestInterface::class, $request);
         return $handler->handle($request);
     }
@@ -174,7 +175,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
     /**
      * 获取测试载体
      */
-    abstract protected function getTestPayload(ServerRequestInterface $request);
+    abstract protected function getTestPayload(ServerRequestInterface $request): JwtSubject;
 
     abstract protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): ServerRequestInterface;
 }
