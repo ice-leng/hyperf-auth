@@ -26,68 +26,16 @@ or add
 ```
 to the require section of your `composer.json` file.
 
-如果没有看懂可以参考[hyper-advanced](https://github.com/ice-leng/hyperf-advanced)
-
 Configs
 -----
 ``` php
     // 配置 /config/autoload/auth.php
     return [
-        'api'  => [
-                // 全局变量 名称
-                'requestName'   => 'api',
-                // 实现类，请实现接口 \Lengbin\Auth\IdentityRepositoryInterface::class
-                'identityClass' => \App\Model\User::class,
-                // 验证器方法，支持
-                // header: \Lengbin\Auth\Method\HttpHeaderAuth::class //默认接收参数名称：X-Api-Token
-                // query : \Lengbin\Auth\Method\QueryParamAuth::class //默认接收参数名称：access-token
-                // sign  : \Lengbin\Auth\Method\SignAuth::class
-
-                // 'method' =>  \Lengbin\Auth\Method\QueryParamAuth::class,
-                // 如果为 数组 则为 混合验证
-                // key => val  接收参数名称 => 验证类
-                'method' => [
-                    \Lengbin\Auth\Method\HttpHeaderAuth::class,
-                    'token' => \Lengbin\Auth\Method\QueryParamAuth::class,
-                ],
-                //路由白名单。列如 /test/{id}, 可以使用*来通配, /test/*
-                'whitelist'     => [],
-                //公共访问，不走验证。列如 /test/{id}, 可以使用*来通配, /test/*
-                'public'        => [],
-            ],
-         'web'  => [
-                // 基于session
-                // 全局变量 名称
-                'requestName' => 'web',
-                'identityClass' => \App\Model\User::class,
-                // 过期时间
-                'timeout' => 8 * 60 * 60,
-                // 跳转页面
-                'redirect' => '/',
-                'public'    => [],
-            ],
-    ];
-            
-    
-    // 中间件
-    // /config/autoload/middlewares.php
-
-    // api
-    return [
-        'http' => [
-             \Lengbin\Hyperf\Common\Middleware\CorsMiddleware::class,
-             \Lengbin\Hyperf\Auth\Middleware\ApiMiddleware::class,
+        'log' => [
+            'enable' => true,
+            'group'  => 'default',
         ],
-    ];
-    
-   // web 基于session
-    return [
-        'backend' => [
-            \Hyperf\Session\Middleware\SessionMiddleware::class,
-            \Lengbin\Hyperf\Auth\Middleware\WebMiddleware::class,
-        ],
-    ];
-    
+    ];    
 ```
 
 
@@ -99,107 +47,131 @@ php ./bin/hyperf.php vendor:publish lengbin/hyperf-auth
 
 ```
 
-Usage
+DemoMiddleware 
 -----
 ```php
-
 <?php
 
 declare(strict_types=1);
+
+namespace Lengbin\Hyperf\Auth\Middleware;
+
+use Lengbin\Hyperf\Auth\JwtSubject;
+use Psr\Http\Message\ServerRequestInterface;
+
+class DemoMiddleware extends BaseAuthMiddleware
+{
+
+    // 测试 载体
+    protected function getTestPayload(ServerRequestInterface $request)
+    {
+        $payload = new JwtSubject();
+        $payload->data = [
+            // 设置 测试 载体数据
+            //'userId' => $request->getParsedBody()['userId']
+        ];
+        $payload->key = self::class;
+        return $payload;
+    }
+
+    protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): ServerRequestInterface
+    {
+        // $data = $payload->data;
+        // 验证 jwt 是那个 应用 发布的
+//        if ($payload->key !== self::class) {
+//            throw new \Exception();
+//        }
+
+        // 验证 载体 数据，  载体类型
+//        if (empty($data['userId'])) {
+//            throw new \Exception();
+//        }
+
+        // 数据 相关  验证 查询
+        // 设置 数据 上下文
+
+//        $request =  $request->withAttribute('userId', $data['userId']);
+        return $request;
+    }
+    
+//    /**
+//     * 获取Token，  可以 复写 自定义 获取key
+//     */
+//    public function getToken(ServerRequestInterface $request): ?string
+//    {
+//        $token = $this->getTokenByRequest($request);
+//        [$token] = sscanf($token, 'Bearer %s');
+//        return $token;
+//    }
+//
+//    /**
+//     * 解析 jwt 数据， 可以 复写 自己验证 token
+//     */
+//    public function validateToken(?string $token): JwtSubject
+//    {
+//        return $this->loginFactory->verifyToken($token);
+//    }
+}
+
+```
+
+Using
+------
+```php
+
+<?php
+declare(strict_types=1);
+
+namespace App\Controller\Client\V1;
+
+
 /**
- * This file is part of Hyperf.
- *
- * @link     https://www.hyperf.io
- * @document https://doc.hyperf.io
- * @contact  group@hyperf.io
- * @license  https://github.com/hyperf-cloud/hyperf/blob/master/LICENSE
+ * @ApiController(prefix="/api/v1/client", tag="客户端.登录", description="客户端.登录")
  */
-
-namespace App\Controller;
-
-use Hyperf\Di\Annotation\Inject;
-use Hyperf\HttpServer\Annotation\Controller;
-use Hyperf\HttpServer\Annotation\GetMapping;
-use Hyperf\HttpServer\Annotation\RequestMapping;
-use Lengbin\Hyperf\Auth\RouterAuthAnnotation;
-use Lengbin\Auth\User\UserInterface;
-use Lengbin\Jwt\JwtInterface;
-
-/**
- * Class IndexController
- * @package App\Controller
- * @Controller()
- */
-class IndexController extends AbstractController
+class LoginController extends BaseController
 {
 
     /**
-     * @Inject()
-     * @var JwtInterface
+     * @Inject
+     * @var LoginFactory
      */
-    protected $jwt;
+    protected LoginFactory $loginFactory;
 
-    /**
-     * 直接访问 不做验证 
-     * @RequestMapping(path="/", methods={"get", "post"})
-     * @RouterAuthAnnotation(isPublic=true)  
-     * @return array
-     */
-    public function index()
+    public function login(): ResponseInterface
     {
-        $user = $this->request->input('user', 'Hyperf');
-        $method = $this->request->getMethod();
-        return [
-            'method'  => $method,
-            'message' => "Hello {$user}.",
-            'token' => $this->jwt->generate(["username"=> 'ice', 'face'=> '']),
-        ];
+        $result = $this->loginFactory->make(["user_id" => 1], LoginFactory::LOGIN_TYPE_CLIENT);
+        return $this->response->success([
+            'token' => $result,
+        ]);
     }
 
     /**
-     * 路由白名单， 直接方法 或者 带token 访问
-     * @GetMapping(path="/test/{id:\d{1,3}}")
-     * @RouterAuthAnnotation(isWhitelist=true)
+     * @PostApi(path="/refreshToken", summary="刷新token", description="刷新token")
      */
-    public function test($id)
+    public function refreshToken(): ResponseInterface
     {
-        return ['11' =>  $id];
+        $token = $this->request->getAttribute('token');
+        $result = $this->loginFactory->refreshToken($token);
+        return $this->response->success([
+            'token' => $result,
+        ]);
     }
-    
+
     /**
-     * auth
-     * @return UserInterface
+     * @PostApi(path="/logout", summary="注销", description="退出登录")
+     * @Middleware(ClientMiddleware::class)
+     *
+     * @ApiResponse(code="0", template="success")
      */
-    public function getAuth(): UserInterface
+    public function logout(): ResponseInterface
     {
-        $config = $this->container->get(ConfigInterface::class);
-        $requestName = $config->get('auth.api.requestName', 'api');
-        return $this->request->getAttribute($requestName);
+        $token = $this->request->getAttribute('token');
+        $this->loginFactory->logout($token);
+        return $this->response->success();
     }
-
-    /** 
-     * token验证访问
-     * @GetMapping(path="/test2")
-     */
-    public function test2()
-    {
-        return [
-            'id' => $this->getAuth()->getId()
-        ];
-    }
-    
-    // 基于session， 存 uid
-    public function login ()
-    {
-        $user = new User();
-        $this->getAuth()->login($user);
-        
-        var_dump($this->getAuth()->getId());
-    }
-
 }
 
 
 ```
 
-案例中的jwt请看[详情](https://github.com/ice-leng/hyperf-jwt)
+案例中的jwt请看[详情](https://github.com/hyperf-ext/jwt)

@@ -18,10 +18,7 @@ class ConfigProvider
     {
         return [
             'dependencies' => [
-                \Lengbin\Auth\Method\HttpHeaderAuth::class => \Lengbin\Auth\Method\HttpHeaderAuth::class,
-                \Lengbin\Auth\Method\QueryParamAuth::class => \Lengbin\Auth\Method\QueryParamAuth::class,
-                \Lengbin\Auth\Method\SignAuth::class       => \Lengbin\Auth\Method\SignAuth::class,
-                \Lengbin\Auth\AuthSessionInterface::class  => \Lengbin\Hyperf\Auth\AuthSession::class,
+
             ],
             'publish'      => [
                 [
