@@ -18,7 +18,7 @@ use Lengbin\Hyperf\Auth\Annotation\RouterAuthAnnotation;
 use Lengbin\Hyperf\Auth\Exception\InvalidTokenException;
 use Lengbin\Hyperf\Auth\Exception\TokenExpireException;
 use Lengbin\Hyperf\Auth\JwtSubject;
-use Lengbin\Hyperf\Auth\Mode\LoginInterface;
+use Lengbin\Hyperf\Auth\LoginInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

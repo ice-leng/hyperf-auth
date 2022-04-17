@@ -6,6 +6,7 @@ namespace Lengbin\Hyperf\Auth\Mode;
 
 use Lengbin\Hyperf\Auth\JwtHelper;
 use Lengbin\Hyperf\Auth\JwtSubject;
+use Lengbin\Hyperf\Auth\LoginInterface;
 
 class JwtMode implements LoginInterface
 {

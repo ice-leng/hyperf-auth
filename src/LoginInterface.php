@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lengbin\Hyperf\Auth\Mode;
+namespace Lengbin\Hyperf\Auth;
 
 use Lengbin\Hyperf\Auth\JwtSubject;
 

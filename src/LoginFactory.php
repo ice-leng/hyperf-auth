@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Lengbin\Hyperf\Auth;
 
 use Lengbin\Hyperf\Auth\Mode\JwtMode;
-use Lengbin\Hyperf\Auth\Mode\LoginInterface;
 use Lengbin\Hyperf\Auth\Mode\TokenMode;
 
 class LoginFactory
