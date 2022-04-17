@@ -159,7 +159,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         // 记录 jwt解析 日志
         $this->logger(get_object_vars($payload), 'request-payload');
 
-        if ($payload->invalid || (!$isTest && !empty(self::getIss()) && self::getIss() !== $payload->data['iss'])) {
+        if ($payload->invalid || (!$isTest && !empty(static::getIss()) && static::getIss() !== $payload->data['iss'])) {
             throw new InvalidTokenException();
         }
 
