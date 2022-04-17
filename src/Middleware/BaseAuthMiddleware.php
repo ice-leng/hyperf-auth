@@ -147,13 +147,13 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         if ($isPublic || (empty($token) && $isWhite)) {
             return $handler->handle($request);
         }
-
-        $payload = $request->getHeaderLine('x-test-flag') == 1 ? $this->getTestPayload($request) : $this->validateToken($token, $ignoreExpired);
+        $isTest = $request->getHeaderLine('x-test-flag') == 1;
+        $payload = $isTest ? $this->getTestPayload($request) : $this->validateToken($token, $ignoreExpired);
 
         // 记录 jwt解析 日志
         $this->logger(get_object_vars($payload), 'request-payload');
 
-        if ($payload->invalid || (!empty($this->getIss()) && $this->getIss() !== $payload->data['iss'])) {
+        if ($payload->invalid || (!$isTest && !empty($this->getIss()) && $this->getIss() !== $payload->data['iss'])) {
             throw new InvalidTokenException();
         }
 
