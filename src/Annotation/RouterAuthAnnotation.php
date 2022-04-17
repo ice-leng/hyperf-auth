@@ -20,11 +20,15 @@ class RouterAuthAnnotation extends AbstractAnnotation
     public bool $isPublic = false;
 
     // 是否为白名单， 走auth验证，如果不存在token不报错
-    public bool $isWhitelist = false;
+    public bool $isWhite = false;
 
-    public function __construct(bool $isPublic = false, bool $isWhitelist = false)
+    // 是否忽略 过期
+    public bool $ignoreExpired = false;
+
+    public function __construct(bool $isPublic = false, bool $isWhite = false, bool $ignoreExpired = false)
     {
         $this->isPublic = $isPublic;
-        $this->isWhitelist = $isWhitelist;
+        $this->isWhite = $isWhite;
+        $this->ignoreExpired = $ignoreExpired;
     }
 }

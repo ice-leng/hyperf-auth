@@ -49,6 +49,7 @@ php ./bin/hyperf.php vendor:publish lengbin/hyperf-auth
 
 DemoMiddleware 
 -----
+
 ```php
 <?php
 
@@ -57,7 +58,7 @@ declare(strict_types=1);
 namespace Lengbin\Hyperf\Auth\Middleware;
 
 use Lengbin\Hyperf\Auth\JwtSubject;
-use Psr\Http\Message\ServerRequestInterface;
+use Lengbin\Hyperf\Auth\LoginFactory;use Lengbin\Hyperf\Auth\Mode\LoginInterface;use Psr\Http\Message\ServerRequestInterface;
 
 class DemoMiddleware extends BaseAuthMiddleware
 {
@@ -93,6 +94,18 @@ class DemoMiddleware extends BaseAuthMiddleware
 //        $request =  $request->withAttribute('userId', $data['userId']);
         return $request;
     }
+    
+    // jwt 发布者
+    protected function getIss(): string
+    {
+        return "demo";
+    }
+    
+    protected function getLoginMode(): LoginInterface
+    {
+        return $this->container->get(LoginFactory::class)->get();
+    }
+    
     
 //    /**
 //     * 获取Token，  可以 复写 自定义 获取key

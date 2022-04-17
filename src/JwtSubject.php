@@ -13,11 +13,6 @@ use HyperfExt\Jwt\Contracts\JwtSubjectInterface;
 class JwtSubject implements JwtSubjectInterface
 {
     /**
-     * @var string
-     */
-    public string $key = '';
-
-    /**
      * @var array
      */
     public array $data = [];
@@ -34,15 +29,10 @@ class JwtSubject implements JwtSubjectInterface
      */
     public bool $invalid = false;
 
-    /**
-     * token
-     * @var string
-     */
-    public string $token = '';
 
     public function getJwtIdentifier()
     {
-        return $this->key;
+        return $this->data['sub'] ?? '';
     }
 
     public function getJwtCustomClaims(): array
