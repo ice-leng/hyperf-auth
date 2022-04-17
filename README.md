@@ -66,13 +66,10 @@ class DemoMiddleware extends BaseAuthMiddleware
     // 测试 载体
     protected function getTestPayload(ServerRequestInterface $request)
     {
-        $payload = new JwtSubject();
-        $payload->data = [
+        return [
             // 设置 测试 载体数据
             //'userId' => $request->getParsedBody()['userId']
         ];
-        $payload->key = self::class;
-        return $payload;
     }
 
     protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): ServerRequestInterface
@@ -152,7 +149,7 @@ class LoginController extends BaseController
 
     public function login(): ResponseInterface
     {
-        $result = $this->loginFactory->make(["user_id" => 1], LoginFactory::LOGIN_TYPE_CLIENT);
+        $result = $this->loginFactory->get()->make(["user_id" => 1], LoginFactory::LOGIN_TYPE_CLIENT);
         return $this->response->success([
             'token' => $result,
         ]);
@@ -164,7 +161,7 @@ class LoginController extends BaseController
     public function refreshToken(): ResponseInterface
     {
         $token = $this->request->getAttribute('token');
-        $result = $this->loginFactory->refreshToken($token);
+        $result = $this->loginFactory->get()->refreshToken($token);
         return $this->response->success([
             'token' => $result,
         ]);
@@ -179,7 +176,7 @@ class LoginController extends BaseController
     public function logout(): ResponseInterface
     {
         $token = $this->request->getAttribute('token');
-        $this->loginFactory->logout($token);
+        $this->loginFactory->get()->logout($token);
         return $this->response->success();
     }
 }

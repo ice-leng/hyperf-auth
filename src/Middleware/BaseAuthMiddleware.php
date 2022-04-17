@@ -147,8 +147,14 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         if ($isPublic || (empty($token) && $isWhite)) {
             return $handler->handle($request);
         }
+
         $isTest = $request->getHeaderLine('x-test-flag') == 1;
-        $payload = $isTest ? $this->getTestPayload($request) : $this->validateToken($token, $ignoreExpired);
+        if ($isTest) {
+            $payload = new JwtSubject();
+            $payload->data = $this->getTestPayload($request);
+        } else {
+            $payload =  $this->validateToken($token, $ignoreExpired);
+        }
 
         // 记录 jwt解析 日志
         $this->logger(get_object_vars($payload), 'request-payload');
@@ -170,7 +176,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
     /**
      * 获取测试载体
      */
-    abstract protected function getTestPayload(ServerRequestInterface $request): JwtSubject;
+    abstract protected function getTestPayload(ServerRequestInterface $request): array;
 
     /**
      * 处理数据
