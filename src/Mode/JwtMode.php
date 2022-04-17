@@ -29,12 +29,12 @@ class JwtMode implements LoginInterface
 
     public function logout(string $token): bool
     {
-        return $this->jwtHelper->logout($token, true);
+        return $this->jwtHelper->logout($token);
     }
 
     public function refreshToken(string $token): string
     {
-        return $this->jwtHelper->refreshToken($token, true);
+        return $this->jwtHelper->refreshToken($token);
     }
 
     public function verifyToken(?string $token, bool $ignoreExpired = false): JwtSubject

@@ -43,7 +43,7 @@ class JwtHelper
 
     public function logout(string $token, bool $forceForever = false): bool
     {
-        return $this->jwt->setToken($this->handleToken($token))->invalidate($forceForever)->check();
+        return !$this->jwt->setToken($this->handleToken($token))->invalidate($forceForever)->check();
     }
 
     public function refreshToken(string $token, bool $forceForever = false): string
