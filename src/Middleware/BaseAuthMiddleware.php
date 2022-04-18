@@ -148,7 +148,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $isTest = $request->getHeaderLine('x-test-flag') == 1;
+        $isTest = $request->getHeaderLine('x-test-flag') == config('auth.x-test-flag');
         if ($isTest) {
             $payload = new JwtSubject();
             $payload->data = $this->getTestPayload($request);

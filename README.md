@@ -36,7 +36,9 @@ Configs
             'group'  => 'default',
         ],
         // 是否单点登录
-        'oss' => false
+        'oss' => false,
+        // 测试 key
+        'x-test-flag' => 1
     ];    
 ```
 

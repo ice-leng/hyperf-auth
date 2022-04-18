@@ -33,6 +33,7 @@ return [
         'enable' => true,
         'group'  => 'default',
     ],
+    'x-test-flag' => 1,
     // 单点登录
     'oss' => false
 ];
