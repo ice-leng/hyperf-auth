@@ -167,8 +167,11 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
             throw new TokenExpireException();
         }
 
-        $request = $this->handlePayload($request, $payload);
-        $request = $request->withAttribute('token', $token);
+        $results = $this->handlePayload($request, $payload);
+        $results['token'] = $token;
+        foreach ($results as $key => $value) {
+            $request = $request->withAttribute($key, $value);
+        }
         Context::set(ServerRequestInterface::class, $request);
         return $handler->handle($request);
     }
@@ -181,7 +184,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
     /**
      * 处理数据
      */
-    abstract protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): ServerRequestInterface;
+    abstract protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): array;
 
     /**
      * 获得登录模式

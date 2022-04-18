@@ -35,6 +35,8 @@ Configs
             'enable' => true,
             'group'  => 'default',
         ],
+        // 是否单点登录
+        'oss' => false
     ];    
 ```
 
@@ -72,13 +74,9 @@ class DemoMiddleware extends BaseAuthMiddleware
         ];
     }
 
-    protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): ServerRequestInterface
+    protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): array
     {
         // $data = $payload->data;
-        // 验证 jwt 是那个 应用 发布的
-//        if ($payload->key !== self::class) {
-//            throw new \Exception();
-//        }
 
         // 验证 载体 数据，  载体类型
 //        if (empty($data['userId'])) {
@@ -86,10 +84,8 @@ class DemoMiddleware extends BaseAuthMiddleware
 //        }
 
         // 数据 相关  验证 查询
-        // 设置 数据 上下文
-
-//        $request =  $request->withAttribute('userId', $data['userId']);
-        return $request;
+        // [key => value]
+        return [];
     }
     
     // jwt 发布者
@@ -185,3 +181,5 @@ class LoginController extends BaseController
 ```
 
 案例中的jwt请看[详情](https://github.com/hyperf-ext/jwt)
+
+支持jwt模式(刷新token)和token模式(自动刷新token)
