@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Lengbin\Hyperf\Auth;
 
 use HyperfExt\Jwt\Contracts\JwtFactoryInterface;
+use HyperfExt\Jwt\Contracts\StorageInterface;
+use HyperfExt\Jwt\Exceptions\TokenBlacklistedException;
 use HyperfExt\Jwt\Exceptions\TokenExpiredException;
 use HyperfExt\Jwt\Jwt;
+use HyperfExt\Jwt\Storage\HyperfCache;
 use HyperfExt\Jwt\Token;
 use Lengbin\Hyperf\Auth\Exception\InvalidTokenException;
 use Throwable;
@@ -19,6 +22,8 @@ class JwtHelper
      * @var Jwt
      */
     protected Jwt $jwt;
+
+    protected ?StorageInterface $storage = null;
 
     public function __construct(JwtFactoryInterface $jwtFactory)
     {
@@ -56,9 +61,14 @@ class JwtHelper
         }
     }
 
+    public function getClaims(string $token, bool $ignoreExpired = false): array
+    {
+        return $this->jwt->setToken($this->handleToken($token))->getPayload($ignoreExpired)->toArray();
+    }
+
     protected function handleClaims(string $token, bool $ignoreExpired = false): array
     {
-        $data = $this->jwt->setToken($this->handleToken($token))->getPayload($ignoreExpired)->toArray();
+        $data = $this->getClaims($token, $ignoreExpired);
         $defaultClaims = $this->jwt->getManager()->getPayloadFactory()->getDefaultClaims();
         foreach ($defaultClaims as $claim) {
             if ($claim === 'iss') {
@@ -83,6 +93,9 @@ class JwtHelper
             if ($e instanceof TokenExpiredException && $e->getMessage() === 'Token has expired') {
                 $payload->expired = true;
             }
+            if ($e instanceof TokenBlacklistedException && $e->getMessage() === 'The token has been blacklisted') {
+                $payload->invalid = true;
+            }
         }
         return $payload;
     }
@@ -90,5 +103,16 @@ class JwtHelper
     public function getTtl(): int
     {
         return $this->jwt->getPayloadFactory()->getTtl();
+    }
+
+    public function getStorage(): StorageInterface
+    {
+        if (is_null($this->storage)) {
+            $storageClass = $this->config['blacklist_storage'] ?? HyperfCache::class;
+            $this->storage = make($storageClass, [
+                'tag' => 'jwt.oss',
+            ]);
+        }
+        return $this->storage;
     }
 }

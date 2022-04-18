@@ -33,4 +33,6 @@ return [
         'enable' => true,
         'group'  => 'default',
     ],
+    // 单点登录
+    'oss' => false
 ];
