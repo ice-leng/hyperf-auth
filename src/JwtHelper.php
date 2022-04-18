@@ -9,6 +9,7 @@ use HyperfExt\Jwt\Contracts\StorageInterface;
 use HyperfExt\Jwt\Exceptions\TokenBlacklistedException;
 use HyperfExt\Jwt\Exceptions\TokenExpiredException;
 use HyperfExt\Jwt\Jwt;
+use HyperfExt\Jwt\Manager;
 use HyperfExt\Jwt\Storage\HyperfCache;
 use HyperfExt\Jwt\Token;
 use Lengbin\Hyperf\Auth\Exception\InvalidTokenException;
@@ -61,14 +62,14 @@ class JwtHelper
         }
     }
 
-    public function getClaims(string $token, bool $ignoreExpired = false): array
+    public function getManager(): Manager
     {
-        return $this->jwt->setToken($this->handleToken($token))->getPayload($ignoreExpired)->toArray();
+        return $this->jwt->getManager();
     }
 
     protected function handleClaims(string $token, bool $ignoreExpired = false): array
     {
-        $data = $this->getClaims($token, $ignoreExpired);
+        $data = $this->jwt->setToken($this->handleToken($token))->getPayload($ignoreExpired)->toArray();
         $defaultClaims = $this->jwt->getManager()->getPayloadFactory()->getDefaultClaims();
         foreach ($defaultClaims as $claim) {
             if ($claim === 'iss') {
@@ -108,7 +109,7 @@ class JwtHelper
     public function getStorage(): StorageInterface
     {
         if (is_null($this->storage)) {
-            $storageClass = $this->config['blacklist_storage'] ?? HyperfCache::class;
+            $storageClass = config('jwt.blacklist_storage', HyperfCache::class);
             $this->storage = make($storageClass, [
                 'tag' => 'jwt.oss',
             ]);

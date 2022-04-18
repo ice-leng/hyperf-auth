@@ -32,13 +32,13 @@ class JwtMode implements LoginInterface
     protected function handleOss(string $token, string $event): bool
     {
         $status = false;
-        if (!config('auth.oss', true)) {
+        if (!config('auth.oss', false)) {
             return $status;
         }
-        $result = $this->jwtHelper->getClaims($token);
+        $result = $this->jwtHelper->getManager()->getCodec()->decode($token);
         switch ($event) {
             case "add":
-                $this->jwtHelper->getStorage()->add($result['sub'], $result['jti'], $this->jwtHelper->getTtl());
+                $this->jwtHelper->getStorage()->add($result['sub'], $result['jti'], $this->getTtl());
                 break;
             case "remove":
                 $this->jwtHelper->getStorage()->destroy($result['sub']);
