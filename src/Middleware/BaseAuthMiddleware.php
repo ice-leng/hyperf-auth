@@ -18,6 +18,7 @@ use Lengbin\Hyperf\Auth\Annotation\RouterAuthAnnotation;
 use Lengbin\Hyperf\Auth\Exception\InvalidTokenException;
 use Lengbin\Hyperf\Auth\Exception\TokenExpireException;
 use Lengbin\Hyperf\Auth\JwtSubject;
+use Lengbin\Hyperf\Auth\LoginFactory;
 use Lengbin\Hyperf\Auth\LoginInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -32,6 +33,16 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
      * @var ContainerInterface
      */
     protected ContainerInterface $container;
+
+    // 登录模型
+    protected string $loginMode = LoginFactory::LOGIN_MODE_API;
+
+    protected LoginInterface $login;
+
+    public function __construct()
+    {
+        $this->login = make(LoginFactory::class)->get($this->loginMode);
+    }
 
     /**
      * 检测注解路由， 实现路由白名单
@@ -90,6 +101,11 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         $token = $this->getTokenByRequest($request);
         [$token] = sscanf($token, 'Bearer %s');
         return $token;
+    }
+
+    protected function getLoginMode(): LoginInterface
+    {
+        return $this->login;
     }
 
     /**
@@ -186,10 +202,6 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
      */
     abstract protected function handlePayload(ServerRequestInterface $request, JwtSubject $payload): array;
 
-    /**
-     * 获得登录模式
-     */
-    abstract protected function getLoginMode(): LoginInterface;
 
     /**
      * jwt签发者, 如果为空 则使用 当前登录uri
