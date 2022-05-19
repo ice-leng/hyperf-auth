@@ -68,13 +68,16 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
     /**
      * 记录日志
      */
-    protected function logger(array $data, string $name = 'hyperf'): void
+    protected function logger($data, string $name = 'hyperf'): void
     {
         $enable = config('auth.log.enable', true);
         if ($enable) {
+            if (is_array($data)) {
+                $data = json_encode($data,
+                    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            }
             $group = config('auth.log.group', 'default');
-            $this->container->get(LoggerFactory::class)->get($name, $group)->info(json_encode($data,
-                JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->container->get(LoggerFactory::class)->get($name, $group)->info($data);
         }
     }
 
@@ -169,7 +172,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
             $payload = new JwtSubject();
             $payload->data = $this->getTestPayload($request);
         } else {
-            $payload =  $this->validateToken($token, $ignoreExpired);
+            $payload = $this->validateToken($token, $ignoreExpired);
         }
 
         // 记录 jwt解析 日志
@@ -189,7 +192,9 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
             $request = $request->withAttribute($key, $value);
         }
         Context::set(ServerRequestInterface::class, $request);
-        return $handler->handle($request);
+        $response = $handler->handle($request);
+        $this->logger($response->getBody()->getContents(), 'response');
+        return $response;
     }
 
     /**
