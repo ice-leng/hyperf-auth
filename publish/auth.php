@@ -29,6 +29,7 @@
  */
 
 return [
+    'enable_log' => true,
     'x-test-flag' => 1,
     // 单点登录
     'oss' => false

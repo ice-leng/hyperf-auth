@@ -120,9 +120,11 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         }
 
         // 记录 jwt解析 日志
-        $requestPayload = get_object_vars($payload);
-        $requestPayload['token'] = $token;
-        $this->logger->info(json_encode($requestPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        if (config('auth.enable_log', true)) {
+            $requestPayload = get_object_vars($payload);
+            $requestPayload['token'] = $token;
+            $this->logger->info(json_encode($requestPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
 
         if ($payload->invalid || (!$isTest && !empty(static::getIss()) && static::getIss() !== ($payload->data['iss'] ?? ''))) {
             throw new InvalidTokenException();
