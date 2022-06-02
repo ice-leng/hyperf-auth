@@ -20,28 +20,25 @@ use Lengbin\Hyperf\Auth\Exception\TokenExpireException;
 use Lengbin\Hyperf\Auth\JwtSubject;
 use Lengbin\Hyperf\Auth\LoginFactory;
 use Lengbin\Hyperf\Auth\LoginInterface;
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 abstract class BaseAuthMiddleware implements MiddlewareInterface
 {
-    /**
-     * @Inject()
-     * @var ContainerInterface
-     */
-    protected ContainerInterface $container;
-
     // 登录模型
     protected string $loginMode = LoginFactory::LOGIN_MODE_API;
 
     protected LoginInterface $login;
 
+    protected LoggerInterface $logger;
+
     public function __construct()
     {
         $this->login = make(LoginFactory::class)->get($this->loginMode);
+        $this->logger = make(LoggerFactory::class)->get('request-payload');
     }
 
     /**
@@ -65,21 +62,6 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         return [$isPublic, $isWhite, $ignoreExpired];
     }
 
-    /**
-     * 记录日志
-     */
-    protected function logger($data, string $name = 'hyperf'): void
-    {
-        $enable = config('auth.log.enable', true);
-        if ($enable) {
-            if (is_array($data)) {
-                $data = json_encode($data,
-                    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            }
-            $group = config('auth.log.group', 'default');
-            $this->container->get(LoggerFactory::class)->get($name, $group)->info($data);
-        }
-    }
 
     public function getTokenByRequest(ServerRequestInterface $request, string $key = 'authorization'): string
     {
@@ -119,46 +101,8 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         return $this->getLoginMode()->verifyToken($token, $ignoreExpired);
     }
 
-    /**
-     * 真实 ip
-     */
-    public function getClientIp(ServerRequestInterface $request, string $headerName = 'x-real-ip'): string
-    {
-        $client = $request->getServerParams();
-        $xri = $request->getHeader($headerName);
-        if (!empty($xri)) {
-            $clientAddress = $xri[0];
-        } else {
-            $clientAddress = $client['remote_addr'];
-        }
-        $xff = $request->getHeader('x-forwarded-for');
-        if ($clientAddress === '127.0.0.1') {
-            if (!empty($xri)) {
-                // 如果有xri 则判定为前端有NGINX等代理
-                $clientAddress = $xri[0];
-            } elseif (!empty($xff)) {
-                // 如果不存在xri 则继续判断xff
-                $list = explode(',', $xff[0]);
-                if (isset($list[0])) {
-                    $clientAddress = $list[0];
-                }
-            }
-        }
-        return $clientAddress;
-    }
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // 记录请求日志
-        $this->logger([
-            'user-agent' => $request->getHeaderLine('user-agent'),
-            'ip' => $this->getClientIp($request),
-            'host' => $request->getUri()->getHost(),
-            'url' => $request->getUri()->getPath(),
-            'post' => $request->getParsedBody(),
-            'get' => $request->getQueryParams(),
-        ], 'request');
-
         [$isPublic, $isWhite, $ignoreExpired] = $this->checkRouter($request);
 
         // 无需鉴权 1，公开的， 2白名单的
@@ -176,7 +120,9 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
         }
 
         // 记录 jwt解析 日志
-        $this->logger(get_object_vars($payload), 'request-payload');
+        $requestPayload = get_object_vars($payload);
+        $requestPayload['token'] = $token;
+        $this->logger->info(json_encode($requestPayload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         if ($payload->invalid || (!$isTest && !empty(static::getIss()) && static::getIss() !== ($payload->data['iss'] ?? ''))) {
             throw new InvalidTokenException();
@@ -192,9 +138,7 @@ abstract class BaseAuthMiddleware implements MiddlewareInterface
             $request = $request->withAttribute($key, $value);
         }
         Context::set(ServerRequestInterface::class, $request);
-        $response = $handler->handle($request);
-        $this->logger($response->getBody()->getContents(), 'response');
-        return $response;
+        return $handler->handle($request);
     }
 
     /**
