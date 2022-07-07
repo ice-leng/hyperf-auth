@@ -147,7 +147,7 @@ class LoginController extends BaseController
 
     public function login(): ResponseInterface
     {
-        $result = $this->loginFactory->get()->make(["user_id" => 1], LoginFactory::LOGIN_TYPE_CLIENT);
+        $result = $this->loginFactory->get()->makeToke("aaa", LoginFactory::LOGIN_TYPE_CLIENT, ["user_id" => 1]);
         return $this->response->success([
             'token' => $result,
         ]);
