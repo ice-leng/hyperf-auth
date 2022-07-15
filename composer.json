@@ -6,7 +6,7 @@
   "license": "MIT",
   "require": {
     "php": ">=7.4.0",
-    "hyperf-ext/jwt": "^2.2.1",
+    "hashwallet/hyperf-jwt": "dev-master",
     "psr/http-message": "^1.0",
     "psr/event-dispatcher": "^1.0"
   },
