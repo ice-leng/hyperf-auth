@@ -5,7 +5,7 @@
   "keywords": ["php", "hyperf","extension","auth", "hyperf-auth"],
   "license": "MIT",
   "require": {
-    "php": ">=7.4.0",
+    "php": ">=8.0",
     "hashwallet/hyperf-jwt": "dev-master",
     "psr/http-message": "^1.0",
     "psr/event-dispatcher": "^1.0"
