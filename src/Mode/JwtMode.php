@@ -48,6 +48,7 @@ class JwtMode implements LoginInterface
                 $status = $jti !== $result['jti'];
                 break;
         }
+
         return $status;
     }
 
