@@ -58,11 +58,13 @@ class TokenMode implements LoginInterface
     public function logout(string $token): bool
     {
         $this->handle($token, 'remove');
+        return true;
     }
 
     public function refreshToken(string $token): string
     {
         $this->handle($token, 'add');
+        return '';
     }
 
     public function verifyToken(?string $token, bool $ignoreExpired = false): JwtSubject
